@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="川の学校">
+<title>川の学校 持ち物チェック</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;background:#f5f5f0;color:#1a1a1a;}
+.app{max-width:480px;margin:0 auto;padding:0.75rem 1rem 3rem;}
+.header{text-align:center;padding:1.25rem 0 0.75rem;}
+.header h1{font-size:18px;font-weight:600;color:#1a1a1a;}
+.header p{font-size:13px;color:#666;margin-top:4px;}
+.tab-bar{display:flex;gap:6px;margin-bottom:1rem;background:#e8e8e4;border-radius:12px;padding:4px;}
+.tab{flex:1;padding:9px 4px;font-size:14px;font-weight:600;text-align:center;border:none;background:transparent;color:#888;border-radius:9px;cursor:pointer;transition:all 0.15s;}
+.tab.active{background:#fff;color:#1a1a1a;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+.prog-wrap{margin:0.5rem 0 0.25rem;}
+.prog-bg{background:#ddd;border-radius:99px;height:6px;}
+.prog-fill{height:6px;border-radius:99px;transition:width 0.3s;}
+.prog-label{font-size:12px;color:#888;text-align:right;margin-top:4px;}
+.sec-title{font-size:11px;font-weight:700;color:#888;letter-spacing:0.06em;text-transform:uppercase;margin:1.1rem 0 0.4rem;padding-left:2px;}
+.item{display:flex;align-items:center;gap:10px;padding:11px 12px;background:#fff;border:1px solid #ececec;border-radius:10px;margin-bottom:6px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.12s,border-color 0.12s;}
+.item:active{background:#f0f0f0;}
+.item.checked{border-color:#0F6E56;background:#E1F5EE;}
+.num{font-size:12px;font-weight:600;color:#aaa;min-width:20px;text-align:right;flex-shrink:0;}
+.item.checked .num{color:#0F6E56;}
+.cb{width:22px;height:22px;border-radius:50%;border:2px solid #ccc;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+.item.checked .cb{background:#1D9E75;border-color:#1D9E75;}
+.check-icon{display:none;width:12px;height:12px;}
+.item.checked .check-icon{display:block;}
+.lbl{font-size:14px;color:#1a1a1a;flex:1;line-height:1.45;}
+.item.checked .lbl{color:#0F6E56;text-decoration:line-through;text-decoration-color:#5DCAA5;}
+.note{font-size:11px;color:#999;display:block;margin-top:3px;}
+.item.checked .note{color:#5DCAA5;}
+.complete-btn{width:100%;padding:15px;background:#1D9E75;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-top:1.25rem;display:none;-webkit-tap-highlight-color:transparent;}
+.complete-btn:active{opacity:0.85;}
+.reset-link{font-size:13px;color:#aaa;text-decoration:underline;cursor:pointer;display:block;text-align:center;margin-top:1rem;}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;align-items:flex-end;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:#fff;border-radius:20px 20px 0 0;padding:1.5rem 1.5rem 2.5rem;width:100%;max-width:480px;text-align:center;}
+.modal-handle{width:40px;height:4px;background:#ddd;border-radius:99px;margin:0 auto 1.25rem;}
+.modal-icon{font-size:44px;margin-bottom:8px;}
+.modal h2{font-size:17px;font-weight:700;margin-bottom:8px;}
+.modal p{font-size:14px;color:#666;line-height:1.6;margin-bottom:1.25rem;}
+.modal-btn{width:100%;padding:14px;background:#1D9E75;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;-webkit-tap-highlight-color:transparent;}
+.modal-btn:active{opacity:0.85;}
+.modal-btn.sec{background:#f0f0f0;color:#1a1a1a;}
+.ef{display:none;margin-bottom:1rem;text-align:left;}
+.ef label{font-size:13px;color:#666;display:block;margin-bottom:6px;}
+.ef input{width:100%;padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;font-size:15px;background:#fff;color:#1a1a1a;-webkit-appearance:none;}
+.ef input:focus{outline:none;border-color:#1D9E75;}
+#list-back{display:none;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>🏕️ 川の学校 持ち物チェック</h1>
+    <p id="sub-label">行きの持ち物を確認しましょう</p>
+  </div>
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('go')">🎒 行き</button>
+    <button class="tab" onclick="switchTab('back')">🏠 帰り</button>
+  </div>
+
+  <!-- 行きリスト -->
+  <div id="list-go">
+    <div class="prog-wrap">
+      <div class="prog-bg"><div class="prog-fill" id="prog-go" style="width:0%;background:#1D9E75;"></div></div>
+      <div class="prog-label"><span id="cnt-go">0</span> / <span id="tot-go"></span> 完了</div>
+    </div>
+
+    <div class="sec-title">👒 服装</div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">1</span><span class="lbl">帽子<span class="note">濡れても大丈夫なもの・熱中症対策必須</span></span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">2</span><span class="lbl">着替え（3〜4日分）<span class="note">靴下も忘れずに</span></span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">3</span><span class="lbl">雨具・かっぱ（上下）<span class="note">寒さ対策にもなります</span></span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+
+    <div class="sec-title">🩱 水着</div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">4</span><span class="lbl">水着（短パン）</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">5</span><span class="lbl">ラッシュガード（上着）</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">6</span><span class="lbl">モンベル川用インナー（上着）</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">7</span><span class="lbl">モンベル川用インナー（タイツ）</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+
+    <div class="sec-title">👟 履き物</div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">8</span><span class="lbl">川靴<span class="note">使い古し運動靴・上履き可。フェルト底推奨（イソたび）</span></span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">9</span><span class="lbl">サンダル<span class="note">川原用・丈夫なもの</span></span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+
+    <div class="sec-title">🛏️ 宿泊・就寝</div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">10</span><span class="lbl">寝袋（毛布でも可）</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">11</span><span class="lbl">インナー寝袋</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">12</span><span class="lbl">個人用テント（希望者のみ）</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+
+    <div class="sec-title">🍳 食事・食器</div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">13</span><span class="lbl">お米<span class="note">2泊3日 → 6合 ／ 1泊2日 → 4合</span></span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">14</span><span class="lbl">10cm角の布 20枚程度<span class="note">食器の汚れ拭き用。Tシャツをカット。綿素材推奨</span></span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">15</span><span class="lbl">食器一式<span class="note">お椀・汁椀・お皿・箸・スプーン・コップ。大きめ推奨</span></span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+
+    <div class="sec-title">🔦 道具・装備</div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">16</span><span class="lbl">ヘッドランプ<span class="note">替え電池も持参</span></span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">17</span><span class="lbl">水中めがね・シュノーケル<span class="note">プール用ゴーグル不可。ガラスレンズ推奨</span></span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">18</span><span class="lbl">スマホ用モバイルバッテリー<span class="note">一人往復の場合。本部でも充電受付あり</span></span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+
+    <div class="sec-title">🧴 衛生・健康</div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">19</span><span class="lbl">洗面具</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">20</span><span class="lbl">常備薬・個人薬<span class="note">内服薬は現地に用意なし</span></span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+
+    <div class="sec-title">📋 書類・その他</div>
+    <div class="item" onclick="toggle(this,'go')"><span class="num">21</span><span class="lbl">マイナンバーカード<span class="note">持参なしの場合、受診時は実費→後日返金</span></span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+
+    <button class="complete-btn" id="btn-go" onclick="showModal('go')">✅ 準備完了！親に連絡する</button>
+    <a class="reset-link" onclick="resetTab('go')">このリストをリセット</a>
+  </div>
+
+  <!-- 帰りリスト -->
+  <div id="list-back">
+    <div class="prog-wrap">
+      <div class="prog-bg"><div class="prog-fill" id="prog-back" style="width:0%;background:#185FA5;"></div></div>
+      <div class="prog-label"><span id="cnt-back">0</span> / <span id="tot-back"></span> 完了</div>
+    </div>
+
+    <div class="sec-title">👒 服装</div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">1</span><span class="lbl">帽子</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">2</span><span class="lbl">着替え一式（使用分）<span class="note">靴下も忘れずに</span></span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">3</span><span class="lbl">雨具・かっぱ（上下）</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+
+    <div class="sec-title">🩱 水着</div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">4</span><span class="lbl">水着（短パン）</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">5</span><span class="lbl">ラッシュガード（上着）</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">6</span><span class="lbl">モンベル川用インナー（上着）</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">7</span><span class="lbl">モンベル川用インナー（タイツ）</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+
+    <div class="sec-title">👟 履き物</div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">8</span><span class="lbl">川靴</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">9</span><span class="lbl">サンダル</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+
+    <div class="sec-title">🛏️ 宿泊・就寝</div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">10</span><span class="lbl">寝袋</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">11</span><span class="lbl">インナー寝袋</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">12</span><span class="lbl">個人用テント（希望者のみ）</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+
+    <div class="sec-title">🍳 食器</div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">13</span><span class="lbl">食器一式<span class="note">お椀・汁椀・お皿・箸・スプーン・コップ</span></span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+
+    <div class="sec-title">🔦 道具・装備</div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">14</span><span class="lbl">ヘッドランプ・替え電池</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">15</span><span class="lbl">水中めがね・シュノーケル</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">16</span><span class="lbl">スマホ用モバイルバッテリー</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+
+    <div class="sec-title">🧴 衛生・健康</div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">17</span><span class="lbl">洗面具</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">18</span><span class="lbl">常備薬・個人薬</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+
+    <div class="sec-title">📋 書類・その他</div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">19</span><span class="lbl">マイナンバーカード</span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <div class="item" onclick="toggle(this,'back')"><span class="num">20</span><span class="lbl">病院の領収書（怪我があった場合）<span class="note">保険会社への提出に必要</span></span><span class="cb"><svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="1.5,6 4.5,9.5 10.5,2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+
+    <button class="complete-btn" id="btn-back" onclick="showModal('back')">✅ 忘れ物なし！親に連絡する</button>
+    <a class="reset-link" onclick="resetTab('back')">このリストをリセット</a>
+  </div>
+</div>
+
+<!-- モーダル -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="modal-normal">
+      <div class="modal-icon" id="modal-icon">📬</div>
+      <h2 id="modal-title">親への連絡メール</h2>
+      <p id="modal-body">準備完了を保護者にメールで知らせましょう。</p>
+      <div class="ef" id="ef">
+        <label for="email-in">送り先メールアドレス</label>
+        <input type="email" id="email-in" placeholder="parent@example.com" inputmode="email">
+      </div>
+      <button class="modal-btn" id="mail-btn" onclick="mailStep()">メールアドレスを入力する</button>
+      <button class="modal-btn sec" onclick="closeModal()">もどる</button>
+    </div>
+    <div id="modal-sent" style="display:none;">
+      <div class="modal-icon">🎉</div>
+      <h2>送信しました！</h2>
+      <p id="sent-msg" style="margin-bottom:1rem;"></p>
+      <button class="modal-btn" onclick="closeModal()">とじる</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var mStep=0,activeTab='go';
+function getItems(tab){return document.querySelectorAll('#list-'+tab+' .item');}
+function updateProgress(tab){
+  var items=getItems(tab),done=0;
+  items.forEach(function(el){if(el.classList.contains('checked'))done++;});
+  document.getElementById('cnt-'+tab).textContent=done;
+  document.getElementById('tot-'+tab).textContent=items.length;
+  document.getElementById('prog-'+tab).style.width=Math.round(done/items.length*100)+'%';
+  document.getElementById('btn-'+tab).style.display=done===items.length?'block':'none';
+}
+function toggle(el,tab){
+  el.classList.toggle('checked');
+  updateProgress(tab);
+}
+function switchTab(tab){
+  activeTab=tab;
+  document.getElementById('list-go').style.display=tab==='go'?'block':'none';
+  document.getElementById('list-back').style.display=tab==='back'?'block':'none';
+  var tabs=document.querySelectorAll('.tab');
+  tabs[0].classList.toggle('active',tab==='go');
+  tabs[1].classList.toggle('active',tab==='back');
+  document.getElementById('sub-label').textContent=tab==='go'?'行きの持ち物を確認しましょう':'帰りの忘れ物チェックをしましょう';
+}
+function showModal(tab){
+  activeTab=tab;mStep=0;
+  document.getElementById('modal-icon').textContent=tab==='go'?'📬':'🏠';
+  document.getElementById('modal-title').textContent=tab==='go'?'準備完了を連絡する':'帰宅報告を連絡する';
+  document.getElementById('modal-body').textContent=tab==='go'?'準備が整いました！保護者にメールで知らせましょう。':'無事に帰ります！保護者にメールで知らせましょう。';
+  document.getElementById('ef').style.display='none';
+  document.getElementById('mail-btn').textContent='メールアドレスを入力する';
+  document.getElementById('modal-normal').style.display='block';
+  document.getElementById('modal-sent').style.display='none';
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal(){
+  document.getElementById('overlay').classList.remove('open');
+  mStep=0;
+}
+function mailStep(){
+  if(mStep===0){
+    document.getElementById('ef').style.display='block';
+    document.getElementById('mail-btn').textContent='この宛先に送る';
+    mStep=1;
+  } else {
+    var email=document.getElementById('email-in').value.trim();
+    if(!email||email.indexOf('@')<0){
+      document.getElementById('email-in').style.borderColor='#e74c3c';
+      return;
+    }
+    var isGo=activeTab==='go';
+    var subj=encodeURIComponent(isGo?'【川の学校】持ち物チェック完了しました！':'【川の学校】帰ります！忘れ物なしです');
+    var body=encodeURIComponent(isGo?'川の学校の持ち物チェックが全て完了しました！\n準備万端です。行ってきます！\n\n川の学校携帯：090-9869-6664':'川の学校のキャンプが終わりました。忘れ物チェックも完了して帰ります！\n\n川の学校携帯：090-9869-6664');
+    window.location.href='mailto:'+email+'?subject='+subj+'&body='+body;
+    document.getElementById('modal-normal').style.display='none';
+    document.getElementById('modal-sent').style.display='block';
+    document.getElementById('sent-msg').textContent=email+' にメールを送りました。';
+    mStep=0;
+  }
+}
+function resetTab(tab){
+  getItems(tab).forEach(function(el){el.classList.remove('checked');});
+  updateProgress(tab);
+}
+document.getElementById('overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+['go','back'].forEach(function(tab){updateProgress(tab);});
+</script>
+</body>
+</html>
