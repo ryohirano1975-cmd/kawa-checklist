@@ -168,13 +168,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
     <div class="modal-handle"></div>
     <div id="modal-normal">
       <div class="modal-icon" id="modal-icon">📬</div>
-      <h2 id="modal-title">親への連絡メール</h2>
-      <p id="modal-body">準備完了を保護者にメールで知らせましょう。</p>
-      <div class="ef" id="ef">
-        <label for="email-in">送り先メールアドレス</label>
-        <input type="email" id="email-in" placeholder="parent@example.com" inputmode="email">
-      </div>
-      <button class="modal-btn" id="mail-btn" onclick="mailStep()">メールアドレスを入力する</button>
+      <h2 id="modal-title">準備完了を連絡する</h2>
+      <p id="modal-body">お父さん・お母さん２人にメールを送ります。<br>よろしいですか？</p>
+      <button class="modal-btn" id="mail-btn" onclick="sendMail()">メールを送る</button>
       <button class="modal-btn sec" onclick="closeModal()">もどる</button>
     </div>
     <div id="modal-sent" style="display:none;">
@@ -187,7 +183,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 </div>
 
 <script>
-var mStep=0,activeTab='go';
+var activeTab='go';
 function getItems(tab){return document.querySelectorAll('#list-'+tab+' .item');}
 function updateProgress(tab){
   var items=getItems(tab),done=0;
@@ -211,40 +207,26 @@ function switchTab(tab){
   document.getElementById('sub-label').textContent=tab==='go'?'行きの持ち物を確認しましょう':'帰りの忘れ物チェックをしましょう';
 }
 function showModal(tab){
-  activeTab=tab;mStep=0;
+  activeTab=tab;
   document.getElementById('modal-icon').textContent=tab==='go'?'📬':'🏠';
   document.getElementById('modal-title').textContent=tab==='go'?'準備完了を連絡する':'帰宅報告を連絡する';
-  document.getElementById('modal-body').textContent=tab==='go'?'準備が整いました！保護者にメールで知らせましょう。':'無事に帰ります！保護者にメールで知らせましょう。';
-  document.getElementById('ef').style.display='none';
-  document.getElementById('mail-btn').textContent='メールアドレスを入力する';
+  document.getElementById('modal-body').textContent=tab==='go'?'お父さん・お母さん２人にメールを送ります。\nよろしいですか？':'無事に帰ります！お父さん・お母さん２人にメールを送ります。\nよろしいですか？';
   document.getElementById('modal-normal').style.display='block';
   document.getElementById('modal-sent').style.display='none';
   document.getElementById('overlay').classList.add('open');
 }
 function closeModal(){
   document.getElementById('overlay').classList.remove('open');
-  mStep=0;
 }
-function mailStep(){
-  if(mStep===0){
-    document.getElementById('ef').style.display='block';
-    document.getElementById('mail-btn').textContent='この宛先に送る';
-    mStep=1;
-  } else {
-    var email=document.getElementById('email-in').value.trim();
-    if(!email||email.indexOf('@')<0){
-      document.getElementById('email-in').style.borderColor='#e74c3c';
-      return;
-    }
-    var isGo=activeTab==='go';
-    var subj=encodeURIComponent(isGo?'【川の学校】持ち物チェック完了しました！':'【川の学校】帰ります！忘れ物なしです');
-    var body=encodeURIComponent(isGo?'川の学校の持ち物チェックが全て完了しました！\n準備万端です。行ってきます！\n\n川の学校携帯：090-9869-6664':'川の学校のキャンプが終わりました。忘れ物チェックも完了して帰ります！\n\n川の学校携帯：090-9869-6664');
-    window.location.href='mailto:'+email+'?subject='+subj+'&body='+body;
-    document.getElementById('modal-normal').style.display='none';
-    document.getElementById('modal-sent').style.display='block';
-    document.getElementById('sent-msg').textContent=email+' にメールを送りました。';
-    mStep=0;
-  }
+function sendMail(){
+  var isGo=activeTab==='go';
+  var to='ryohirano1975@gmail.com,yuko_yuwanda@yahoo.co.jp';
+  var subj=encodeURIComponent(isGo?'【川の学校】持ち物チェック完了しました！':'【川の学校】帰ります！忘れ物なしです');
+  var body=encodeURIComponent(isGo?'川の学校の持ち物チェックが全て完了しました！\n準備万端です。行ってきます！\n\n川の学校携帯：090-9869-6664':'川の学校のキャンプが終わりました。忘れ物チェックも完了して帰ります！\n\n川の学校携帯：090-9869-6664');
+  window.location.href='mailto:'+to+'?subject='+subj+'&body='+body;
+  document.getElementById('modal-normal').style.display='none';
+  document.getElementById('modal-sent').style.display='block';
+  document.getElementById('sent-msg').textContent='ryohirano1975@gmail.com と yuko_yuwanda@yahoo.co.jp にメールを送りました。';
 }
 function resetTab(tab){
   getItems(tab).forEach(function(el){el.classList.remove('checked');});
